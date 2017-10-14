@@ -1,4 +1,5 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import logging
 from Evento import Evento
 
@@ -27,6 +28,22 @@ def echo(bot, update):
 def error(bor, update, error):
     logger.warn('Update "%s" caused error "%s"' %(update, error))
 
+# ........................
+
+def event(bot, update):
+
+    keyboard = [[InlineKeyboardButton("Ok", callback_data = '1'), InlineKeyboardButton("Cancell", callback_data = '2')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Please, confirm your intencions:', reply_markup = reply_markup)
+
+
+def button(bot, update):
+    query = update.callback_query
+    bot.edit_message_text(text = 'select option %s' % query.data, chat_id = query.message.chat_id, message_id = query.message.message_id )
+# ........................
+
+
+
 def main():
 
     # Create and EventHandler and pass it yout bot's token
@@ -39,6 +56,15 @@ def main():
     # On differents commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
+
+    # ........................
+
+
+    dp.add_handler(CommandHandler("event", event))
+    dp.add_handler(CallbackQueryHandler(button))
+
+    # ........................
+
 
     # On noncommand i.e. message - echo the messageon Telegram
     dp.add_handler(MessageHandler(Filters.text, echo))
