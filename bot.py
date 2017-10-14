@@ -1,11 +1,13 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, ConversationHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import logging
-from Evento import Evento
+
+import collections
 
 
 TOKEN = '462467351:AAGf1qJTDN0xUik2NCY35YoWC3x9DyCBJm0'
 
+EVENT, NAME, DATA, PRIORITY = range(4)
 
 # Enable logging
 logging.basicConfig(format = '%(asctime)s - %(name)s - %(levelname)s - %(name)s', level = logging.INFO)
@@ -15,11 +17,9 @@ logger = logging.getLogger(__name__)
 # Error handlers also recive the raised TelegramError object in error.
 
 def start(bot, update):
-    #bot.send_message(chat_id = update.message.chat_id, text = 'please, talk to me')
     update.message.reply_text('please, talk to me')
 
 def help(bot, update):
-    #bot.send_message(chat_id = update.message.chat_id, text = 'Do you need help?.. poor boy')
     update.message.reply_text('Do you need help?.. poor boy')
 
 def echo(bot, update):
@@ -27,6 +27,12 @@ def echo(bot, update):
 
 def error(bor, update, error):
     logger.warn('Update "%s" caused error "%s"' %(update, error))
+
+def cancel(bot, updapte):
+    user = update.message.from_user
+    logger.info('You have canceled the event creation')
+    update.message.reply_text('Hope see you soon')
+    return ConversationHandler.EN
 
 ## .........................
 
@@ -40,18 +46,41 @@ def event(bot, update):
 def button(bot, update):
     query = update.callback_query
     bot.edit_message_text(text = 'select option %s' % query.data, chat_id = query.message.chat_id, message_id = query.message.message_id )
+    # now we return true to know if we have to continue with the flow of the program
 
-def priorities(bot, update):
+def name(bot, update):
+    update.message.reply_text('tell me how to name te event:')
+    user = update.message.from_user
+    NAME = update.message.text
+    update.message.reply_text('Ok!', reply_markup = NAME)
+
+    return NAME
+
+def priority(bot, update):
     keyboard = [[InlineKeyboardButton(text = "low", callback_data = '3' ), InlineKeyboardButton(text = 'moderate', callback_data = 4)], [InlineKeyboardButton(text = 'high', callback_data = 5,), InlineKeyboardButton(text = 'super high', callback_data = 6)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('Select the priority of your event', reply_markup = reply_markup)
 
-def buttonPriorities(bot, update):
+def buttonPriority(bot, update):
     query = update.callback_query
     bot.edit_message_text(text = 'select option %s' % query.data, chat_id = query.message.chat_id, message_id = query.message.message_id )
 
-##  ........................
+    PRIORITY = query.data
 
+    return PRIORITY
+
+def data(bot, update):
+    # arreglar fuertemente
+    keyboard = [
+        [InlineKeyboardButton(text="low", callback_data='3'), InlineKeyboardButton(text='moderate', callback_data=4)],
+        [InlineKeyboardButton(text='high', callback_data=5, ),
+         InlineKeyboardButton(text='super high', callback_data=6)]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Select the priority of your event', reply_markup=reply_markup)
+
+    DATA = reply_markup
+
+    return DATA
 
 
 def main():
@@ -59,23 +88,40 @@ def main():
     # Create and EventHandler and pass it yout bot's token
     updater = Updater(TOKEN)
 
+    Evento = collections.namedtuple('evento', 'name date priority')  # creates de Evento class
+    Eventos = []
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
+
+    # ------------------------
+    conv_Handler = ConversationHandler(
+        entry_points = [CommandHandler("event", event), CommandHandler("name", name),  CommandHandler("data", data), CommandHandler("priority", priority)],
+        states = {
+            EVENT: [MessageHandler(Filters.text, event)],
+            NAME: [MessageHandler(Filters.text, name)],
+            DATA: [MessageHandler(Filters.text, data)],
+            PRIORITY: [MessageHandler(Filters.text, priority)],
+        },
+
+        fallbacks = [CommandHandler('cancel', cancel)]
+
+    )
+
+    dp.add_handler(conv_Handler)
 
     # On differents commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
 
-    # ........................
-
 
     dp.add_handler(CommandHandler("event", event))
     dp.add_handler(CallbackQueryHandler(button))
-    
 
-    # ........................
+    dp.add_handler(CommandHandler("name", name))
 
+    dp.add_handler(CommandHandler("priority", priority))
+    dp.add_handler(CallbackQueryHandler(buttonPriority))
 
     # On noncommand i.e. message - echo the messageon Telegram
     dp.add_handler(MessageHandler(Filters.text, echo))
@@ -96,22 +142,12 @@ if __name__ == '__main__':
 dispatcher = updater.dispatcher
 
 
-
-
-
-
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
 
-def test(bot, update):
-    bot.send_message(chat_id = updater.message.chat_id, text = 'si funcina seré feliz')
-
-
-
-
 
 updater.start_polling()
-
+updater.idle()
 
 
 
