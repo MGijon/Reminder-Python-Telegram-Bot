@@ -28,19 +28,29 @@ def echo(bot, update):
 def error(bor, update, error):
     logger.warn('Update "%s" caused error "%s"' %(update, error))
 
-# ........................
+## .........................
 
 def event(bot, update):
 
     keyboard = [[InlineKeyboardButton("Ok", callback_data = '1'), InlineKeyboardButton("Cancell", callback_data = '2')]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Please, confirm your intencions:', reply_markup = reply_markup)
+    reply_markup = InlineKeyboardMarkup(keyboard) # create an 'array' with the bottons
+    update.message.reply_text('Please, confirm that your want to create a new event:', reply_markup = reply_markup)
 
 
 def button(bot, update):
     query = update.callback_query
     bot.edit_message_text(text = 'select option %s' % query.data, chat_id = query.message.chat_id, message_id = query.message.message_id )
-# ........................
+
+def priorities(bot, update):
+    keyboard = [[InlineKeyboardButton(text = "low", callback_data = '3' ), InlineKeyboardButton(text = 'moderate', callback_data = 4)], [InlineKeyboardButton(text = 'high', callback_data = 5,), InlineKeyboardButton(text = 'super high', callback_data = 6)]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Select the priority of your event', reply_markup = reply_markup)
+
+def buttonPriorities(bot, update):
+    query = update.callback_query
+    bot.edit_message_text(text = 'select option %s' % query.data, chat_id = query.message.chat_id, message_id = query.message.message_id )
+
+##  ........................
 
 
 
@@ -62,6 +72,7 @@ def main():
 
     dp.add_handler(CommandHandler("event", event))
     dp.add_handler(CallbackQueryHandler(button))
+    
 
     # ........................
 
