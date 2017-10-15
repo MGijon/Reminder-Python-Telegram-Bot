@@ -103,8 +103,10 @@ def error(bot, update, error):
 
 def listado(bot, update):
     update.message.reply_text("The next events are:")
-    for i in lista:
+    file = open("Datos.txt", "r")
+    for i in file:
         update.message.reply_text("%s" % i)
+    file.close()
 
 def almacenar(data):
     file = open("Datos.txt", "a")
