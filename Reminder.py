@@ -3,7 +3,6 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Regex
 
 import logging
 
-lista = []  # en forma de diccionario, almacenaré los eventos...
 
 # logeamos
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -38,8 +37,7 @@ def start(bot, update):
     :return: CHOOSING
     '''
     update.message.reply_text(
-        "Hi! My name is ReminderHackUPC bot. I will remember importats facts for you :). "
-        "Why don't you tell me something about yourself?",
+        "Hi! My name is ReminderHackUPC bot. I will remember importats facts for you :). ",
         reply_markup = markup)
 
     return CHOOSING
@@ -48,14 +46,13 @@ def start(bot, update):
 def regular_choice(bot, update, user_data):
     text = update.message.text
     user_data['choice'] = text
-    update.message.reply_text('Your %s? Yes, I would love to hear about that!' % text.lower())
+    update.message.reply_text('%s' % text.lower())
 
     return TYPING_REPLY
 
 
 def custom_choice(bot, update):
-    update.message.reply_text('Alright, please send me the category first, '
-                              'for example "Most impressive skill"')
+    update.message.reply_text('Alright!!, something different', reply_markup = markup)
 
     return TYPING_CHOICE
 
@@ -66,7 +63,7 @@ def received_information(bot, update, user_data):
     user_data[category] = text
     del user_data['choice']
 
-    update.message.reply_text("Neat! Just so you know, this is what you already told me:"
+    update.message.reply_text("Neat! Just so you know, this is what you told me:"
                               "%s"
                               "You can tell me more, or change your opinion on something."
                               % facts_to_str(user_data),
@@ -89,8 +86,6 @@ def done(bot, update, user_data):
     update.message.reply_text("The event consists of:"
                               "%s"
                               "Don\'t forgot it!" % facts_to_str(user_data))
-    # Si quiero guardar los datos es aquí dónde debo intervenir!!
-    lista.append(facts_to_str(user_data))  # aquí mando ese diccionario a mi lista de pendientes
     almacenar(facts_to_str(user_data))     # almaceno los datos
     user_data.clear()
     return ConversationHandler.END
@@ -103,15 +98,20 @@ def error(bot, update, error):
 
 def listado(bot, update):
     update.message.reply_text("The next events are:")
+    #chat_id = bot.get_updates()['id'].message.chat_id
+    #bot.send_document(chat_id = chat_id, document = open('Datos.txt', 'rb'))
     file = open("Datos.txt", "r")
-    for i in file:
-        update.message.reply_text("%s" % i)
+    cadena = ''
+    for line in file.readlines():
+        cadena += line
+        cadena += '\n'
+    update.message.reply_text("%s" % cadena)
     file.close()
 
 def almacenar(data):
     file = open("Datos.txt", "a")
     file.write(data)
-    flle.write('----------')
+    file.write('----------')
     file.close()
 
 ## ===========================================================
