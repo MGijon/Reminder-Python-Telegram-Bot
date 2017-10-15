@@ -117,7 +117,7 @@ def almacenar(data):
 ## ===========================================================
 
 def main():
-    TOKEN = '462467351:AAGf1qJTDN0xUik2NCY35YoWC3x9DyCBJm0'
+    TOKEN = ''
     updater = Updater(TOKEN)
 
     # Obtenemos el  dispatcher para registrar los handlers
