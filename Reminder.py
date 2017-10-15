@@ -91,6 +91,7 @@ def done(bot, update, user_data):
                               "Don\'t forgot it!" % facts_to_str(user_data))
     # Si quiero guardar los datos es aquí dónde debo intervenir!!
     lista.append(facts_to_str(user_data))  # aquí mando ese diccionario a mi lista de pendientes
+    almacenar(facts_to_str(user_data))     # almaceno los datos
     user_data.clear()
     return ConversationHandler.END
 
@@ -105,7 +106,11 @@ def listado(bot, update):
     for i in lista:
         update.message.reply_text("%s" % i)
 
-def almacenar()
+def almacenar(data):
+    file = open("Datos.txt", "a")
+    file.write(data)
+    flle.write('----------')
+    file.close()
 
 ## ===========================================================
 
