@@ -40,13 +40,17 @@ def event(bot, update):
 
     keyboard = [[InlineKeyboardButton("Ok", callback_data = '1'), InlineKeyboardButton("Cancell", callback_data = '2')]]
     reply_markup = InlineKeyboardMarkup(keyboard) # create an 'array' with the bottons
+
     update.message.reply_text('Please, confirm that your want to create a new event:', reply_markup = reply_markup)
 
 
 def button(bot, update):
     query = update.callback_query
     bot.edit_message_text(text = 'select option %s' % query.data, chat_id = query.message.chat_id, message_id = query.message.message_id )
-    # now we return true to know if we have to continue with the flow of the program
+
+    EVENT = query.data # contiene lo que debe contener
+    return EVENT
+
 
 def name(bot, update):
     update.message.reply_text('tell me how to name te event:')
@@ -59,6 +63,7 @@ def name(bot, update):
 def priority(bot, update):
     keyboard = [[InlineKeyboardButton(text = "low", callback_data = '3' ), InlineKeyboardButton(text = 'moderate', callback_data = 4)], [InlineKeyboardButton(text = 'high', callback_data = 5,), InlineKeyboardButton(text = 'super high', callback_data = 6)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
+
     update.message.reply_text('Select the priority of your event', reply_markup = reply_markup)
 
 def buttonPriority(bot, update):
@@ -70,13 +75,13 @@ def buttonPriority(bot, update):
     return PRIORITY
 
 def data(bot, update):
-    # arreglar fuertemente
+    # quiero año, día y mes
     keyboard = [
-        [InlineKeyboardButton(text="low", callback_data='3'), InlineKeyboardButton(text='moderate', callback_data=4)],
+        [InlineKeyboardButton(text="", callback_data='3'), InlineKeyboardButton(text='moderate', callback_data=4)],
         [InlineKeyboardButton(text='high', callback_data=5, ),
          InlineKeyboardButton(text='super high', callback_data=6)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Select the priority of your event', reply_markup=reply_markup)
+    update.message.reply_text('Select the priority of your event', reply_markup =reply_markup)
 
     DATA = reply_markup
 
@@ -84,6 +89,7 @@ def data(bot, update):
 
 
 def main():
+    EVENT, NAME, DATA, PRIORITY = range(4)
 
     # Create and EventHandler and pass it yout bot's token
     updater = Updater(TOKEN)
@@ -96,9 +102,9 @@ def main():
 
     # ------------------------
     conv_Handler = ConversationHandler(
-        entry_points = [CommandHandler("event", event), CommandHandler("name", name),  CommandHandler("data", data), CommandHandler("priority", priority)],
+        entry_points = [CommandHandler("button", button), CommandHandler("name", name),  CommandHandler("data", data), CommandHandler("priority", priority)],
         states = {
-            EVENT: [MessageHandler(Filters.text, event)],
+            EVENT: [MessageHandler(Filters.text, button)],
             NAME: [MessageHandler(Filters.text, name)],
             DATA: [MessageHandler(Filters.text, data)],
             PRIORITY: [MessageHandler(Filters.text, priority)],
@@ -114,7 +120,6 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
 
-
     dp.add_handler(CommandHandler("event", event))
     dp.add_handler(CallbackQueryHandler(button))
 
@@ -125,12 +130,10 @@ def main():
 
     # On noncommand i.e. message - echo the messageon Telegram
     dp.add_handler(MessageHandler(Filters.text, echo))
-
     # Log all the errors
     dp.add_error_handler(error)
 
     # start the bot
-
     updater.start_polling()
 
     updater.idle()
@@ -139,12 +142,10 @@ if __name__ == '__main__':
     main()
 
 
-dispatcher = updater.dispatcher
-
+#dispatcher = updater.dispatcher
 
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
-
 
 updater.start_polling()
 updater.idle()
